@@ -10,12 +10,11 @@ func main() {
 
 	compiler := compiler.NewCompiler()
 	compiler.Compile(`
-		PUSH 1
-		PUSH 1
+		PUSH 5000
+		PUSH 6000
 		PRINT
-		ADD
-		PRINT
-		NEGATE
+		SUB
+		PRINT_INT64
 		PRINT
 	`)
 

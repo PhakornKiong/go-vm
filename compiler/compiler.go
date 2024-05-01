@@ -36,21 +36,40 @@ func (c *Compiler) Compile(input string) {
 		switch op {
 		case opcode.PUSH:
 			if len(parts) > 1 {
-				value, err := strconv.ParseUint(parts[1], 10, 64)
-				if err != nil {
-					fmt.Println("Error parsing PUSH operand:", err)
-					continue
+				var buf []byte
+				if strings.HasPrefix(parts[1], "-") {
+					value, err := strconv.ParseInt(parts[1], 10, 64)
+					if err != nil {
+						fmt.Println("Error parsing PUSH operand as int64:", err)
+						continue
+					}
+					buf = make([]byte, 8)
+					binary.LittleEndian.PutUint64(buf, uint64(value))
+				} else {
+					value, err := strconv.ParseUint(parts[1], 10, 64)
+					if err != nil {
+						fmt.Println("Error parsing PUSH operand as uint64:", err)
+						continue
+					}
+					buf = make([]byte, 8)
+					binary.LittleEndian.PutUint64(buf, value)
 				}
 				c.bytecode = append(c.bytecode, byte(opcode.PUSH))
-				// Convert uint64 to bytes and append
-				buf := make([]byte, 8)
-				binary.LittleEndian.PutUint64(buf, value)
 				c.bytecode = append(c.bytecode, buf...)
 			}
 		case opcode.ADD:
 			c.bytecode = append(c.bytecode, byte(opcode.ADD))
+		case opcode.SUB:
+			c.bytecode = append(c.bytecode, byte(opcode.SUB))
 		case opcode.PRINT:
 			c.bytecode = append(c.bytecode, byte(opcode.PRINT))
+		case opcode.PRINT_INT64:
+			c.bytecode = append(c.bytecode, byte(opcode.PRINT_INT64))
+		case opcode.STORE:
+			if len(parts) > 1 {
+				c.bytecode = append(c.bytecode, byte(opcode.STORE))
+				c.bytecode = append(c.bytecode, []byte(parts[1])...)
+			}
 		}
 	}
 }

@@ -39,7 +39,6 @@ func (v *vm) Execute(bytecode []byte) {
 		case opcode.POP:
 			if v.sp > 0 {
 				v.sp--
-				v.stack = v.stack[:v.sp]
 			}
 		case opcode.NEGATE: // TODO Figure out
 			if v.sp > 0 {
@@ -49,15 +48,24 @@ func (v *vm) Execute(bytecode []byte) {
 			if v.sp > 0 {
 				fmt.Println(v.stack[v.sp-1])
 			}
-		case opcode.ADD, opcode.MINUS, opcode.MUL, opcode.DIV:
+		case opcode.PRINT_INT64:
+			if v.sp > 0 {
+				if v.stack[v.sp-1]&(1<<63) != 0 {
+					fmt.Print("-")
+					fmt.Println(^v.stack[v.sp-1] + 1)
+				} else {
+					fmt.Println(v.stack[v.sp-1])
+				}
+			}
+		case opcode.ADD, opcode.SUB, opcode.MUL, opcode.DIV:
 			if v.sp > 1 {
-				a := v.stack[v.sp-2]
-				b := v.stack[v.sp-1]
+				a := v.stack[v.sp-1]
+				b := v.stack[v.sp-2]
 				v.sp -= 2
 				switch op {
 				case opcode.ADD:
 					v.stack[v.sp] = a + b
-				case opcode.MINUS:
+				case opcode.SUB:
 					v.stack[v.sp] = a - b
 				case opcode.MUL:
 					v.stack[v.sp] = a * b

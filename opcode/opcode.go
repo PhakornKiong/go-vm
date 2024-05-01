@@ -12,16 +12,18 @@ const (
 	PUSH
 	// NEGATE is used to negate a single operand.
 	NEGATE
-	// PRINT is used to print the top value of the stack.
+	// PRINT is used to print the top value of the stack as uint64
 	PRINT
+	// PRINT_INT64 is used to print the top value of the stack as int64
+	PRINT_INT64
 	// LOAD is used to load a value from memory into the stack at a specified address.
 	LOAD
 
 	// Binary opcodes
 	// ADD is used to add two operands.
 	ADD
-	// MINUS is used to subtract the second operand from the first operand.
-	MINUS
+	// SUB is used to subtract the second operand from the first operand.
+	SUB
 	// MUL is used to multiply two operands.
 	MUL
 	// DIV is used to divide the first operand by the second operand.
@@ -41,7 +43,7 @@ func (op Opcode) IsUnary() bool {
 
 func (op Opcode) IsBinary() bool {
 	switch op {
-	case ADD, MINUS, MUL, DIV:
+	case ADD, SUB, MUL, DIV:
 		return true
 	default:
 		return false
@@ -58,12 +60,14 @@ func FromString(opStr string) (Opcode, error) {
 		return NEGATE, nil
 	case "PRINT":
 		return PRINT, nil
+	case "PRINT_INT64":
+		return PRINT_INT64, nil
 	case "LOAD":
 		return LOAD, nil
 	case "ADD":
 		return ADD, nil
-	case "MINUS":
-		return MINUS, nil
+	case "SUB":
+		return SUB, nil
 	case "MUL":
 		return MUL, nil
 	case "DIV":
@@ -85,12 +89,14 @@ func (op Opcode) String() string {
 		return "NEGATE"
 	case PRINT:
 		return "PRINT"
+	case PRINT_INT64:
+		return "PRINT_INT64"
 	case LOAD:
 		return "LOAD"
 	case ADD:
 		return "ADD"
-	case MINUS:
-		return "MINUS"
+	case SUB:
+		return "SUB"
 	case MUL:
 		return "MUL"
 	case DIV:
