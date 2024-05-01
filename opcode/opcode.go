@@ -1,4 +1,6 @@
-package vm
+package opcode
+
+import "fmt"
 
 type Opcode byte
 
@@ -43,5 +45,59 @@ func (op Opcode) IsBinary() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func FromString(opStr string) (Opcode, error) {
+	switch opStr {
+	case "POP":
+		return POP, nil
+	case "PUSH":
+		return PUSH, nil
+	case "NEGATE":
+		return NEGATE, nil
+	case "PRINT":
+		return PRINT, nil
+	case "LOAD":
+		return LOAD, nil
+	case "ADD":
+		return ADD, nil
+	case "MINUS":
+		return MINUS, nil
+	case "MUL":
+		return MUL, nil
+	case "DIV":
+		return DIV, nil
+	case "STORE":
+		return STORE, nil
+	default:
+		return 0, fmt.Errorf("unknown opcode: %s", opStr)
+	}
+}
+
+func (op Opcode) String() string {
+	switch op {
+	case POP:
+		return "POP"
+	case PUSH:
+		return "PUSH"
+	case NEGATE:
+		return "NEGATE"
+	case PRINT:
+		return "PRINT"
+	case LOAD:
+		return "LOAD"
+	case ADD:
+		return "ADD"
+	case MINUS:
+		return "MINUS"
+	case MUL:
+		return "MUL"
+	case DIV:
+		return "DIV"
+	case STORE:
+		return "STORE"
+	default:
+		return "UNKNOWN"
 	}
 }

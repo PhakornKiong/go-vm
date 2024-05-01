@@ -1,61 +1,67 @@
 package vm
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+
+	"github.com/PhakornKiong/go-vm/opcode"
+)
 
 type vm struct {
-	stack  []int64 // stack
-	sp     int64   // stack pointer
-	memory []int64 // 64-bit addressable memory, each word is 8 byte as well
-}
-
-type Instruction struct {
-	Opcode   Opcode
-	Operands []int64
+	stack  []uint64 // stack
+	pc     uint64   // program counter
+	sp     uint64   // stack pointer
+	memory []uint64 // 64-bit addressable memory, each word is 8 byte as well
 }
 
 func NewVM() *vm {
 	return &vm{
-		stack:  make([]int64, 1<<5),
+		stack:  make([]uint64, 1<<5),
+		pc:     0,
 		sp:     0,
-		memory: make([]int64, 1<<5), // Initialize memory with 32-bit addressable space
+		memory: make([]uint64, 1<<5), // Initialize memory with 32-bit addressable space
 	}
 }
 
-func (v *vm) Execute(instructions []Instruction) {
-	for _, instr := range instructions {
+func (v *vm) Execute(bytecode []byte) {
+	for v.pc < uint64(len(bytecode)) {
+		op := opcode.Opcode(bytecode[v.pc])
+		v.pc++
 		fmt.Println("Current stack:", v.stack, v.sp)
-		switch instr.Opcode {
-		case PUSH:
-			if len(instr.Operands) > 0 {
-				v.stack[v.sp] = instr.Operands[0]
+		switch op {
+		case opcode.PUSH:
+			if v.pc+8 <= uint64(len(bytecode)) {
+				value := binary.LittleEndian.Uint64(bytecode[v.pc : v.pc+8])
+				v.stack[v.sp] = value
 				v.sp++
+				v.pc += 8
 			}
-		case POP:
+		case opcode.POP:
 			if v.sp > 0 {
 				v.sp--
 				v.stack = v.stack[:v.sp]
 			}
-		case NEGATE:
+		case opcode.NEGATE: // TODO Figure out
 			if v.sp > 0 {
-				v.stack[v.sp-1] = -v.stack[v.sp-1]
+				v.stack[v.sp-1] = ^v.stack[v.sp-1] + 1 // 2's complement negation
 			}
-		case PRINT:
+		case opcode.PRINT:
 			if v.sp > 0 {
 				fmt.Println(v.stack[v.sp-1])
 			}
-		case ADD, MINUS, MUL, DIV:
+		case opcode.ADD, opcode.MINUS, opcode.MUL, opcode.DIV:
 			if v.sp > 1 {
 				a := v.stack[v.sp-2]
 				b := v.stack[v.sp-1]
 				v.sp -= 2
-				switch instr.Opcode {
-				case ADD:
+				switch op {
+				case opcode.ADD:
 					v.stack[v.sp] = a + b
-				case MINUS:
+				case opcode.MINUS:
 					v.stack[v.sp] = a - b
-				case MUL:
+				case opcode.MUL:
 					v.stack[v.sp] = a * b
-				case DIV:
+				case opcode.DIV:
 					if b != 0 {
 						v.stack[v.sp] = a / b
 					} else {
@@ -64,32 +70,28 @@ func (v *vm) Execute(instructions []Instruction) {
 				}
 				v.sp++
 			}
-		case STORE:
+		case opcode.STORE:
 			if v.sp > 1 {
 				memoryOffset := v.stack[v.sp-2]
 				valueToStore := v.stack[v.sp-1]
 				v.sp -= 2
-				// assume memory offset within possible range
-
-				v.memory[memoryOffset] = valueToStore
+				if memoryOffset < uint64(len(v.memory)) {
+					v.memory[memoryOffset] = valueToStore
+				} else {
+					fmt.Println("Error: Memory access out of bounds")
+				}
 			}
-		case LOAD:
+		case opcode.LOAD:
 			if v.sp > 0 {
 				memoryOffset := v.stack[v.sp-1]
 				v.sp--
-				// assume memory offset within possible range
-				fmt.Println("Memory Content:", v.memory, v.sp, v.memory[memoryOffset])
-				if memoryOffset >= 0 && memoryOffset < int64(len(v.memory)) {
+				if memoryOffset < uint64(len(v.memory)) {
 					v.stack[v.sp] = v.memory[memoryOffset]
 					v.sp++
-					fmt.Println("Stack Pointer (v.sp):", v.sp)
-
 				} else {
 					fmt.Println("Error: Memory access out of bounds")
 				}
 			}
 		}
-
 	}
-
 }
