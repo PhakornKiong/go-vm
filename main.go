@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/PhakornKiong/go-vm/compiler"
 	"github.com/PhakornKiong/go-vm/vm"
 )
@@ -22,8 +24,12 @@ func main() {
 		PUSH 0
 		LOAD
 		PRINT
+		PUSH 16
+		PUSH 0
+		RETURN
 	`)
 
-	a.Execute(compiler.Output())
+	res, _ := a.Execute(compiler.Output())
+	fmt.Println(res)
 
 }

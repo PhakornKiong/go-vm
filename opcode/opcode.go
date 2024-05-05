@@ -28,6 +28,8 @@ const (
 	DIV
 	// STORE is used to store an entire word from the stack into memory at a specified address.
 	STORE
+	// RETURN is exit the execution and return the offset from memory
+	RETURN
 )
 
 func FromString(opStr string) (Opcode, error) {
@@ -52,6 +54,8 @@ func FromString(opStr string) (Opcode, error) {
 		return DIV, nil
 	case "STORE":
 		return STORE, nil
+	case "RETURN":
+		return RETURN, nil
 	default:
 		return 0, fmt.Errorf("unknown opcode: %s", opStr)
 	}
@@ -79,6 +83,8 @@ func (op Opcode) String() string {
 		return "DIV"
 	case STORE:
 		return "STORE"
+	case RETURN:
+		return "RETURN"
 	default:
 		return "UNKNOWN"
 	}

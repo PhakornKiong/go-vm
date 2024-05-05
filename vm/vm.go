@@ -7,6 +7,17 @@ import (
 	"github.com/PhakornKiong/go-vm/opcode"
 )
 
+const (
+	ErrMemoryOutOfBounds = "memory access out of bounds"
+)
+
+func (v *vm) checkMemoryBounds(address uint64, length uint64) error {
+	if address+length > uint64(len(v.memory)) {
+		return fmt.Errorf(ErrMemoryOutOfBounds)
+	}
+	return nil
+}
+
 type vm struct {
 	stack  []uint64 // stack
 	pc     uint64   // program counter
@@ -23,7 +34,7 @@ func NewVM() *vm {
 	}
 }
 
-func (v *vm) Execute(bytecode []byte) {
+func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 	for v.pc < uint64(len(bytecode)) {
 		op := opcode.Opcode(bytecode[v.pc])
 		v.pc++
@@ -72,29 +83,38 @@ func (v *vm) Execute(bytecode []byte) {
 			}
 		case opcode.STORE:
 			if v.sp > 1 {
-				memoryOffset := v.stack[v.sp-1]
-				valueToStore := v.stack[v.sp-2]
+				offset := v.stack[v.sp-1]
+				value := v.stack[v.sp-2]
 				v.sp -= 2
-				if memoryOffset+8 > uint64(len(v.memory)) {
-					fmt.Println("Error: Memory access out of bounds")
-					return
+				if err := v.checkMemoryBounds(offset, 8); err != nil {
+					return []byte{}, err
 				}
 				buf := make([]byte, 8)
-				binary.BigEndian.PutUint64(buf, valueToStore)
-				copy(v.memory[memoryOffset:], buf)
+				binary.BigEndian.PutUint64(buf, value)
+				copy(v.memory[offset:], buf)
 			}
 		case opcode.LOAD:
 			if v.sp > 1 {
-				memoryOffset := v.stack[v.sp-1]
+				offset := v.stack[v.sp-1]
 				v.sp--
-				if memoryOffset+8 > uint64(len(v.memory)) {
-					fmt.Println("Error: Memory access out of bounds")
-					return
+				if err := v.checkMemoryBounds(offset, 8); err != nil {
+					return []byte{}, err
 				}
-				value := binary.BigEndian.Uint64(v.memory[memoryOffset:])
+				value := binary.BigEndian.Uint64(v.memory[offset:])
 				v.stack[v.sp] = value
 				v.sp++
 			}
+		case opcode.RETURN:
+			if v.sp > 1 {
+				offset := v.stack[v.sp-1]
+				size := v.stack[v.sp-2]
+				v.sp -= 2
+				if err := v.checkMemoryBounds(offset, 8); err != nil {
+					return []byte{}, err
+				}
+				return v.memory[offset : offset+size], nil
+			}
 		}
 	}
+	return []byte{}, nil
 }

@@ -64,6 +64,8 @@ func (c *Compiler) Compile(input string) error {
 			c.bytecode = append(c.bytecode, byte(opcode.STORE))
 		case opcode.LOAD:
 			c.bytecode = append(c.bytecode, byte(opcode.LOAD))
+		case opcode.RETURN:
+			c.bytecode = append(c.bytecode, byte(opcode.RETURN))
 		default:
 			return fmt.Errorf("opcode not found")
 		}
