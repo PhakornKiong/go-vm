@@ -10,11 +10,17 @@ func main() {
 
 	compiler := compiler.NewCompiler()
 	compiler.Compile(`
-		PUSH 5000
+		PUSH 7000
 		PUSH 6000
 		PRINT
 		SUB
 		PRINT_INT64
+		PRINT
+		PUSH 50
+		PUSH 0
+		STORE
+		PUSH 0
+		LOAD
 		PRINT
 	`)
 

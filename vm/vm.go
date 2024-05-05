@@ -11,15 +11,15 @@ type vm struct {
 	stack  []uint64 // stack
 	pc     uint64   // program counter
 	sp     uint64   // stack pointer
-	memory []uint64 // 64-bit addressable memory, each word is 8 byte as well
+	memory []byte   // memory
 }
 
 func NewVM() *vm {
 	return &vm{
-		stack:  make([]uint64, 1<<5),
+		stack:  make([]uint64, 1<<5), // 1024 stack depth
 		pc:     0,
 		sp:     0,
-		memory: make([]uint64, 1<<5), // Initialize memory with 32-bit addressable space
+		memory: make([]byte, 1<<32), // 4 GB of byte addressable memory
 	}
 }
 
@@ -27,23 +27,15 @@ func (v *vm) Execute(bytecode []byte) {
 	for v.pc < uint64(len(bytecode)) {
 		op := opcode.Opcode(bytecode[v.pc])
 		v.pc++
-		fmt.Println("Current stack:", v.stack, v.sp)
+
 		switch op {
 		case opcode.PUSH:
-			if v.pc+8 <= uint64(len(bytecode)) {
-				value := binary.LittleEndian.Uint64(bytecode[v.pc : v.pc+8])
-				v.stack[v.sp] = value
-				v.sp++
-				v.pc += 8
-			}
+			value := binary.BigEndian.Uint64(bytecode[v.pc : v.pc+8])
+			v.stack[v.sp] = value
+			v.sp++
+			v.pc += 8
 		case opcode.POP:
-			if v.sp > 0 {
-				v.sp--
-			}
-		case opcode.NEGATE: // TODO Figure out
-			if v.sp > 0 {
-				v.stack[v.sp-1] = ^v.stack[v.sp-1] + 1 // 2's complement negation
-			}
+			v.sp--
 		case opcode.PRINT:
 			if v.sp > 0 {
 				fmt.Println(v.stack[v.sp-1])
@@ -80,25 +72,28 @@ func (v *vm) Execute(bytecode []byte) {
 			}
 		case opcode.STORE:
 			if v.sp > 1 {
-				memoryOffset := v.stack[v.sp-2]
-				valueToStore := v.stack[v.sp-1]
+				memoryOffset := v.stack[v.sp-1]
+				valueToStore := v.stack[v.sp-2]
 				v.sp -= 2
-				if memoryOffset < uint64(len(v.memory)) {
-					v.memory[memoryOffset] = valueToStore
-				} else {
+				if memoryOffset+8 > uint64(len(v.memory)) {
 					fmt.Println("Error: Memory access out of bounds")
+					return
 				}
+				buf := make([]byte, 8)
+				binary.BigEndian.PutUint64(buf, valueToStore)
+				copy(v.memory[memoryOffset:], buf)
 			}
 		case opcode.LOAD:
-			if v.sp > 0 {
+			if v.sp > 1 {
 				memoryOffset := v.stack[v.sp-1]
 				v.sp--
-				if memoryOffset < uint64(len(v.memory)) {
-					v.stack[v.sp] = v.memory[memoryOffset]
-					v.sp++
-				} else {
+				if memoryOffset+8 > uint64(len(v.memory)) {
 					fmt.Println("Error: Memory access out of bounds")
+					return
 				}
+				value := binary.BigEndian.Uint64(v.memory[memoryOffset:])
+				v.stack[v.sp] = value
+				v.sp++
 			}
 		}
 	}
