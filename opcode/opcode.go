@@ -8,14 +8,12 @@ const (
 	// Unary opcodes
 	// POP is used to retrieve a value from the stack.
 	POP Opcode = iota
-	// PUSH is used to place a value onto the stack.
-	PUSH
-	// PRINT is used to print the top value of the stack as uint64
-	PRINT
-	// PRINT_INT64 is used to print the top value of the stack as int64
-	PRINT_INT64
-	// LOAD is used to load an entire word from memory into the stack at a specified address.
-	LOAD
+	// PUSH1 is used to place a 1 byte onto the stack.
+	PUSH1
+	// PUSH8 is used to place a 8 byte (a word) onto the stack.
+	PUSH8
+	// LOAD is used to load 8 byte (a word) from memory into the stack at a specified offset.
+	LOAD8
 
 	// Binary opcodes
 	// ADD is used to add two operands.
@@ -26,8 +24,10 @@ const (
 	MUL
 	// DIV is used to divide the first operand by the second operand.
 	DIV
-	// STORE is used to store an entire word from the stack into memory at a specified address.
-	STORE
+	// STORE1 is used to store 1 byte into memory at a specified offset.
+	STORE1
+	// STORE8 is used to store 8 byte (a word) into memory at a specified offset.
+	STORE8
 	// RETURN is exit the execution and return the offset from memory
 	RETURN
 )
@@ -36,14 +36,12 @@ func FromString(opStr string) (Opcode, error) {
 	switch opStr {
 	case "POP":
 		return POP, nil
-	case "PUSH":
-		return PUSH, nil
-	case "PRINT":
-		return PRINT, nil
-	case "PRINT_INT64":
-		return PRINT_INT64, nil
-	case "LOAD":
-		return LOAD, nil
+	case "PUSH1":
+		return PUSH1, nil
+	case "PUSH8":
+		return PUSH8, nil
+	case "LOAD8":
+		return LOAD8, nil
 	case "ADD":
 		return ADD, nil
 	case "SUB":
@@ -52,8 +50,10 @@ func FromString(opStr string) (Opcode, error) {
 		return MUL, nil
 	case "DIV":
 		return DIV, nil
-	case "STORE":
-		return STORE, nil
+	case "STORE1":
+		return STORE1, nil
+	case "STORE8":
+		return STORE8, nil
 	case "RETURN":
 		return RETURN, nil
 	default:
@@ -65,14 +65,12 @@ func (op Opcode) String() string {
 	switch op {
 	case POP:
 		return "POP"
-	case PUSH:
-		return "PUSH"
-	case PRINT:
-		return "PRINT"
-	case PRINT_INT64:
-		return "PRINT_INT64"
-	case LOAD:
-		return "LOAD"
+	case PUSH1:
+		return "PUSH1"
+	case PUSH8:
+		return "PUSH8"
+	case LOAD8:
+		return "LOAD8"
 	case ADD:
 		return "ADD"
 	case SUB:
@@ -81,8 +79,10 @@ func (op Opcode) String() string {
 		return "MUL"
 	case DIV:
 		return "DIV"
-	case STORE:
-		return "STORE"
+	case STORE1:
+		return "STORE1"
+	case STORE8:
+		return "STORE8"
 	case RETURN:
 		return "RETURN"
 	default:

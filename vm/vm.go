@@ -27,10 +27,10 @@ type vm struct {
 
 func NewVM() *vm {
 	return &vm{
-		stack:  make([]uint64, 1<<5), // 1024 stack depth
+		stack:  make([]uint64, 32), // stack depth of 32
 		pc:     0,
 		sp:     0,
-		memory: make([]byte, 1<<32), // 4 GB of byte addressable memory
+		memory: make([]byte, 1<<8), // 4 GB of byte addressable memory
 	}
 }
 
@@ -39,27 +39,22 @@ func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 		op := opcode.Opcode(bytecode[v.pc])
 		v.pc++
 
+		// fmt.Println("Current stack state:", v.stack)
+		// fmt.Println("Current memory state:", v.memory)
+
 		switch op {
-		case opcode.PUSH:
+		case opcode.PUSH1:
+			value := uint64(bytecode[v.pc])
+			v.stack[v.sp] = value
+			v.sp++
+			v.pc += 1
+		case opcode.PUSH8:
 			value := binary.BigEndian.Uint64(bytecode[v.pc : v.pc+8])
 			v.stack[v.sp] = value
 			v.sp++
 			v.pc += 8
 		case opcode.POP:
 			v.sp--
-		case opcode.PRINT:
-			if v.sp > 0 {
-				fmt.Println(v.stack[v.sp-1])
-			}
-		case opcode.PRINT_INT64:
-			if v.sp > 0 {
-				if v.stack[v.sp-1]&(1<<63) != 0 {
-					fmt.Print("-")
-					fmt.Println(^v.stack[v.sp-1] + 1)
-				} else {
-					fmt.Println(v.stack[v.sp-1])
-				}
-			}
 		case opcode.ADD, opcode.SUB, opcode.MUL, opcode.DIV:
 			if v.sp > 1 {
 				a := v.stack[v.sp-1]
@@ -81,7 +76,19 @@ func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 				}
 				v.sp++
 			}
-		case opcode.STORE:
+		case opcode.STORE1:
+			if v.sp > 1 {
+				offset := v.stack[v.sp-1]
+				value := v.stack[v.sp-2]
+				v.sp -= 2
+				if err := v.checkMemoryBounds(offset, 1); err != nil {
+					return []byte{}, err
+				}
+				buf := make([]byte, 1)
+				buf[0] = byte(value) // Take only the least significant byte of the value
+				copy(v.memory[offset:], buf)
+			}
+		case opcode.STORE8:
 			if v.sp > 1 {
 				offset := v.stack[v.sp-1]
 				value := v.stack[v.sp-2]
@@ -93,7 +100,7 @@ func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 				binary.BigEndian.PutUint64(buf, value)
 				copy(v.memory[offset:], buf)
 			}
-		case opcode.LOAD:
+		case opcode.LOAD8:
 			if v.sp > 1 {
 				offset := v.stack[v.sp-1]
 				v.sp--

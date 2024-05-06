@@ -12,22 +12,19 @@ func main() {
 
 	compiler := compiler.NewCompiler()
 	compiler.Compile(`
-		PUSH 7000
-		PUSH 6000
-		PRINT
-		SUB
-		PRINT_INT64
-		PRINT
-		PUSH 50
-		PUSH 0
-		STORE
-		PUSH 0
-		LOAD
-		PRINT
-		PUSH 16
-		PUSH 0
+		PUSH1 0xff
+		PUSH1 0x00
+		STORE1
+		PUSH1 0x01
+		PUSH1 0x00
 		RETURN
 	`)
+	output := compiler.Output()
+	fmt.Print("Bytecode Output: ")
+	for _, b := range output {
+		fmt.Printf("%02x ", b)
+	}
+	fmt.Println()
 
 	res, _ := a.Execute(compiler.Output())
 	fmt.Println(res)

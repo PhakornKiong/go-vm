@@ -36,34 +36,48 @@ func (c *Compiler) Compile(input string) error {
 		}
 
 		switch op {
-		case opcode.PUSH:
+		case opcode.PUSH1:
 			if len(parts) > 1 {
 				var buf []byte
 
-				value, err := strconv.ParseUint(parts[1], 10, 64)
+				value, err := strconv.ParseUint(parts[1][2:], 16, 8) // Parse hexadecimal, skipping the '0x' prefix
 				if err != nil {
-					fmt.Println("Error parsing PUSH operand as uint64:", err)
+					fmt.Println("Error parsing PUSH1 operand as uint8 in hexadecimal:", err)
+					return err
+				}
+
+				buf = make([]byte, 1)
+				buf[0] = byte(value)
+
+				c.bytecode = append(c.bytecode, byte(opcode.PUSH1))
+				c.bytecode = append(c.bytecode, buf...)
+			}
+		case opcode.PUSH8:
+			if len(parts) > 1 {
+				var buf []byte
+
+				value, err := strconv.ParseUint(parts[1][2:], 16, 64) // Parse hexadecimal, skipping the '0x' prefix
+				if err != nil {
+					fmt.Println("Error parsing PUSH8 operand as uint64 in hexadecimal:", err)
 					return err
 				}
 
 				buf = make([]byte, 8)
 				binary.BigEndian.PutUint64(buf, value)
 
-				c.bytecode = append(c.bytecode, byte(opcode.PUSH))
+				c.bytecode = append(c.bytecode, byte(opcode.PUSH8))
 				c.bytecode = append(c.bytecode, buf...)
 			}
 		case opcode.ADD:
 			c.bytecode = append(c.bytecode, byte(opcode.ADD))
 		case opcode.SUB:
 			c.bytecode = append(c.bytecode, byte(opcode.SUB))
-		case opcode.PRINT:
-			c.bytecode = append(c.bytecode, byte(opcode.PRINT))
-		case opcode.PRINT_INT64:
-			c.bytecode = append(c.bytecode, byte(opcode.PRINT_INT64))
-		case opcode.STORE:
-			c.bytecode = append(c.bytecode, byte(opcode.STORE))
-		case opcode.LOAD:
-			c.bytecode = append(c.bytecode, byte(opcode.LOAD))
+		case opcode.STORE1:
+			c.bytecode = append(c.bytecode, byte(opcode.STORE1))
+		case opcode.STORE8:
+			c.bytecode = append(c.bytecode, byte(opcode.STORE8))
+		case opcode.LOAD8:
+			c.bytecode = append(c.bytecode, byte(opcode.LOAD8))
 		case opcode.RETURN:
 			c.bytecode = append(c.bytecode, byte(opcode.RETURN))
 		default:
