@@ -9,6 +9,8 @@ import (
 	"github.com/PhakornKiong/go-vm/opcode"
 )
 
+var ErrUnknownOpcode = fmt.Errorf("unknown opcode")
+
 type Compiler struct {
 	bytecode []byte
 }
@@ -81,7 +83,7 @@ func (c *Compiler) Compile(input string) error {
 		case opcode.RETURN:
 			c.bytecode = append(c.bytecode, byte(opcode.RETURN))
 		default:
-			return fmt.Errorf("opcode not found")
+			return ErrUnknownOpcode
 		}
 
 	}

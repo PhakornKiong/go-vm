@@ -4,6 +4,8 @@ import "fmt"
 
 type Opcode byte
 
+var ErrUnknownOpcode = fmt.Errorf("unknown opcode")
+
 const (
 	// Unary opcodes
 	// POP is used to retrieve a value from the stack.
@@ -57,35 +59,6 @@ func FromString(opStr string) (Opcode, error) {
 	case "RETURN":
 		return RETURN, nil
 	default:
-		return 0, fmt.Errorf("unknown opcode: %s", opStr)
-	}
-}
-
-func (op Opcode) String() string {
-	switch op {
-	case POP:
-		return "POP"
-	case PUSH1:
-		return "PUSH1"
-	case PUSH8:
-		return "PUSH8"
-	case LOAD8:
-		return "LOAD8"
-	case ADD:
-		return "ADD"
-	case SUB:
-		return "SUB"
-	case MUL:
-		return "MUL"
-	case DIV:
-		return "DIV"
-	case STORE1:
-		return "STORE1"
-	case STORE8:
-		return "STORE8"
-	case RETURN:
-		return "RETURN"
-	default:
-		return "UNKNOWN"
+		return 0, ErrUnknownOpcode
 	}
 }

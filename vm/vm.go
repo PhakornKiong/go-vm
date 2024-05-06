@@ -7,13 +7,14 @@ import (
 	"github.com/PhakornKiong/go-vm/opcode"
 )
 
-const (
-	ErrMemoryOutOfBounds = "memory access out of bounds"
+var (
+	ErrMemoryOutOfBounds = fmt.Errorf("memory access out of bounds")
+	ErrDivisionByZero    = fmt.Errorf("division by zero")
 )
 
 func (v *vm) checkMemoryBounds(address uint64, length uint64) error {
 	if address+length > uint64(len(v.memory)) {
-		return fmt.Errorf(ErrMemoryOutOfBounds)
+		return ErrMemoryOutOfBounds
 	}
 	return nil
 }
@@ -30,7 +31,7 @@ func NewVM() *vm {
 		stack:  make([]uint64, 32), // stack depth of 32
 		pc:     0,
 		sp:     0,
-		memory: make([]byte, 1<<8), // 4 GB of byte addressable memory
+		memory: make([]byte, 1<<16), // 64 KB of byte addressable memory
 	}
 }
 
@@ -38,9 +39,6 @@ func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 	for v.pc < uint64(len(bytecode)) {
 		op := opcode.Opcode(bytecode[v.pc])
 		v.pc++
-
-		// fmt.Println("Current stack state:", v.stack)
-		// fmt.Println("Current memory state:", v.memory)
 
 		switch op {
 		case opcode.PUSH1:
@@ -55,25 +53,40 @@ func (v *vm) Execute(bytecode []byte) ([]byte, error) {
 			v.pc += 8
 		case opcode.POP:
 			v.sp--
-		case opcode.ADD, opcode.SUB, opcode.MUL, opcode.DIV:
+		case opcode.ADD:
 			if v.sp > 1 {
 				a := v.stack[v.sp-1]
 				b := v.stack[v.sp-2]
 				v.sp -= 2
-				switch op {
-				case opcode.ADD:
-					v.stack[v.sp] = a + b
-				case opcode.SUB:
-					v.stack[v.sp] = a - b
-				case opcode.MUL:
-					v.stack[v.sp] = a * b
-				case opcode.DIV:
-					if b != 0 {
-						v.stack[v.sp] = a / b
-					} else {
-						fmt.Println("Error: Division by zero")
-					}
+				v.stack[v.sp] = a + b
+				v.sp++
+			}
+		case opcode.SUB:
+			if v.sp > 1 {
+				a := v.stack[v.sp-1]
+				b := v.stack[v.sp-2]
+				v.sp -= 2
+				v.stack[v.sp] = a - b
+				v.sp++
+			}
+		case opcode.MUL:
+			if v.sp > 1 {
+				a := v.stack[v.sp-1]
+				b := v.stack[v.sp-2]
+				v.sp -= 2
+				v.stack[v.sp] = a * b
+				v.sp++
+			}
+		case opcode.DIV:
+			if v.sp > 1 {
+				a := v.stack[v.sp-1]
+				b := v.stack[v.sp-2]
+				v.sp -= 2
+				if b == 0 {
+					return nil, ErrDivisionByZero
 				}
+
+				v.stack[v.sp] = a / b
 				v.sp++
 			}
 		case opcode.STORE1:
