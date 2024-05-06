@@ -12,6 +12,20 @@ The VM is designed as a stack-based system utilizing a 64-bit architecture, wher
 
 The stack in this VM operates on a Last In, First Out (LIFO) principle, where data is pushed onto and popped from the top of the stack.
 
+The **stack pointer (SP)** in the VM is a crucial component that helps in managing the stack's state during the execution of operations. The stack pointer points to the next free position on the stack where data can be pushed. When data is pushed onto the stack, it is placed at the position indicated by the stack pointer, and then the stack pointer is incremented to point to the next free position.
+
+Conversely, when data is popped from the stack, the stack pointer is decremented first, and then the data at the new stack pointer position is retrieved. This ensures that the last pushed item is the first to be popped, adhering to the Last In, First Out (LIFO) principle.
+
+Here's a brief overview of how the stack pointer changes with various operations:
+
+- **PUSH Operations**: When a value is pushed onto the stack, it is stored at the current position of the stack pointer. After storing the value, the stack pointer is incremented by one position regardless of the size of the data pushed (`PUSH1` or `PUSH8`).
+
+- **POP Operation**: Before a value is popped from the stack, the stack pointer is decremented by the size of the data to be popped (1 byte for `POP` when it retrieves the last pushed byte-sized data). The value at the new stack pointer position is then retrieved.
+
+- **Arithmetic Operations (ADD, SUB, MUL, DIV)**: These operations typically involve popping the top two values from the stack, performing the arithmetic operation, and then pushing the result back onto the stack. The stack pointer is adjusted accordingly after each pop and push operation.
+
+The management of the stack pointer is automatic and internal to the VM's operation, ensuring that the stack's integrity is maintained throughout the execution of the bytecode.
+
 ## Opcodes
 
 The VM recognizes the following opcodes:
