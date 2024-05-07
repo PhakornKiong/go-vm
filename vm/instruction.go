@@ -197,6 +197,4 @@ func opReturn(v *vm) ([]byte, error) {
 		return []byte{}, err
 	}
 	return v.memory[offset : offset+size], nil
-
-	return nil, nil
 }
