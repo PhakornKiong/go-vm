@@ -80,12 +80,24 @@ func TestVMExecution(t *testing.T) {
 			expectedStack: []uint64{0x02},
 			err:           nil,
 		},
+		{
+			name: "Test OPUNDEFINED",
+			bytecode: []byte{
+				byte(opcode.PUSH1), 0x03,
+				byte(opcode.PUSH1), 0x05,
+				0xFF, // Undefined opcode
+			},
+			expectedStack: []uint64{0x03, 0x05}, // Stack should be unchanged due to error
+			err:           ErrOpUndefined,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			vm := NewVM()
-			_, err := vm.Execute(test.bytecode)
+			vm.LoadBytecode(test.bytecode)
+
+			_, err := vm.Execute()
 			if err != test.err {
 				t.Errorf("Expected error %v, got %v", test.err, err)
 			}

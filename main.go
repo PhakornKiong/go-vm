@@ -25,8 +25,8 @@ func main() {
 		fmt.Printf("%02x ", b)
 	}
 	fmt.Println()
-
-	res, _ := a.Execute(compiler.Output())
+	a.LoadBytecode(compiler.Output())
+	res, _ := a.Execute()
 	fmt.Println(res)
 
 }
