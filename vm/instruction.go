@@ -42,16 +42,22 @@ func opUndefined(v *vm) ([]byte, error) {
 func opPush1(v *vm) ([]byte, error) {
 	value := uint64(v.bytecode[v.pc])
 	v.stack[v.sp] = value
-	v.sp++
 	v.pc += 1
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 
 func opPush8(v *vm) ([]byte, error) {
 	value := binary.BigEndian.Uint64(v.bytecode[v.pc : v.pc+8])
 	v.stack[v.sp] = value
-	v.sp++
 	v.pc += 8
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 
@@ -61,101 +67,136 @@ func opPop(v *vm) ([]byte, error) {
 }
 
 func opAdd(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		a := v.stack[v.sp-1]
-		b := v.stack[v.sp-2]
-		v.sp -= 2
-		v.stack[v.sp] = a + b
-		v.sp++
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+
+	a := v.stack[v.sp-1]
+	b := v.stack[v.sp-2]
+	v.sp -= 2
+	v.stack[v.sp] = a + b
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func opSub(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		a := v.stack[v.sp-1]
-		b := v.stack[v.sp-2]
-		v.sp -= 2
-		v.stack[v.sp] = a - b
-		v.sp++
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+
+	a := v.stack[v.sp-1]
+	b := v.stack[v.sp-2]
+	v.sp -= 2
+	v.stack[v.sp] = a - b
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func opMul(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		a := v.stack[v.sp-1]
-		b := v.stack[v.sp-2]
-		v.sp -= 2
-		v.stack[v.sp] = a * b
-		v.sp++
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+	a := v.stack[v.sp-1]
+	b := v.stack[v.sp-2]
+	v.sp -= 2
+	v.stack[v.sp] = a * b
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func opDiv(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		a := v.stack[v.sp-1]
-		b := v.stack[v.sp-2]
-		v.sp -= 2
-		if b == 0 {
-			return nil, ErrDivisionByZero
-		}
-		v.stack[v.sp] = a / b
-		v.sp++
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+
+	a := v.stack[v.sp-1]
+	b := v.stack[v.sp-2]
+	v.sp -= 2
+	if b == 0 {
+		return nil, ErrDivisionByZero
+	}
+	v.stack[v.sp] = a / b
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func opStore1(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		offset := v.stack[v.sp-1]
-		value := v.stack[v.sp-2]
-		v.sp -= 2
-		if err := v.checkMemoryBounds(offset, 1); err != nil {
-			return nil, err
-		}
-		v.memory[offset] = byte(value)
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+	offset := v.stack[v.sp-1]
+	value := v.stack[v.sp-2]
+	v.sp -= 2
+	if err := v.checkMemoryBounds(offset, 1); err != nil {
+		return nil, err
+	}
+	v.memory[offset] = byte(value)
+
 	return nil, nil
 }
 
 func opStore8(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		offset := v.stack[v.sp-1]
-		value := v.stack[v.sp-2]
-		v.sp -= 2
-		if err := v.checkMemoryBounds(offset, 8); err != nil {
-			return nil, err
-		}
-		binary.BigEndian.PutUint64(v.memory[offset:], value)
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+	offset := v.stack[v.sp-1]
+	value := v.stack[v.sp-2]
+	v.sp -= 2
+	if err := v.checkMemoryBounds(offset, 8); err != nil {
+		return nil, err
+	}
+	binary.BigEndian.PutUint64(v.memory[offset:], value)
+
 	return nil, nil
 }
 
 func opLoad8(v *vm) ([]byte, error) {
-	if v.sp > 0 {
-		offset := v.stack[v.sp-1]
-		v.sp--
-		if err := v.checkMemoryBounds(offset, 8); err != nil {
-			return nil, err
-		}
-		value := binary.BigEndian.Uint64(v.memory[offset:])
-		v.stack[v.sp] = value
-		v.sp++
+	if err := v.checkStackUnderflow(uint64(0)); err != nil {
+		return nil, err
 	}
+
+	offset := v.stack[v.sp-1]
+	v.sp--
+	if err := v.checkMemoryBounds(offset, 8); err != nil {
+		return nil, err
+	}
+	value := binary.BigEndian.Uint64(v.memory[offset:])
+	v.stack[v.sp] = value
+	v.sp++
+	if err := v.checkStackOverflow(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func opReturn(v *vm) ([]byte, error) {
-	if v.sp > 1 {
-		offset := v.stack[v.sp-1]
-		size := v.stack[v.sp-2]
-		v.sp -= 2
-		if err := v.checkMemoryBounds(offset, 8); err != nil {
-			return []byte{}, err
-		}
-		return v.memory[offset : offset+size], nil
+	if err := v.checkStackUnderflow(uint64(1)); err != nil {
+		return nil, err
 	}
+	offset := v.stack[v.sp-1]
+	size := v.stack[v.sp-2]
+	v.sp -= 2
+	if err := v.checkMemoryBounds(offset, 8); err != nil {
+		return []byte{}, err
+	}
+	return v.memory[offset : offset+size], nil
+
 	return nil, nil
 }

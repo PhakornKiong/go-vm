@@ -8,14 +8,10 @@ var (
 	ErrMemoryOutOfBounds = fmt.Errorf("memory access out of bounds")
 	ErrDivisionByZero    = fmt.Errorf("division by zero")
 	ErrOpUndefined       = fmt.Errorf("undefined opcode")
-)
 
-func (v *vm) checkMemoryBounds(address uint64, length uint64) error {
-	if address+length > uint64(len(v.memory)) {
-		return ErrMemoryOutOfBounds
-	}
-	return nil
-}
+	ErrStackUnderflow = fmt.Errorf("stack underflow")
+	ErrStackOverflow  = fmt.Errorf("stack overflow")
+)
 
 type vm struct {
 	stack     []uint64 // stack
@@ -55,4 +51,25 @@ func (v *vm) Execute() ([]byte, error) {
 		}
 	}
 	return []byte{}, nil
+}
+
+func (v *vm) checkMemoryBounds(address uint64, length uint64) error {
+	if address+length > uint64(len(v.memory)) {
+		return ErrMemoryOutOfBounds
+	}
+	return nil
+}
+
+func (v *vm) checkStackUnderflow(required uint64) error {
+	if v.sp < required {
+		return ErrStackUnderflow
+	}
+	return nil
+}
+
+func (v *vm) checkStackOverflow() error {
+	if v.sp >= uint64(len(v.stack)) {
+		return ErrStackOverflow
+	}
+	return nil
 }
