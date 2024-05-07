@@ -107,3 +107,25 @@ func TestVMExecution(t *testing.T) {
 		})
 	}
 }
+
+func TestVMStackOverflow(t *testing.T) {
+	vm := NewVM()
+	vm.sp = uint64(len(vm.stack))
+
+	err := vm.checkStackOverflow()
+
+	if err != ErrStackOverflow {
+		t.Errorf("Expected error %v, got %v", ErrStackOverflow, err)
+	}
+}
+
+func TestVMStackUnderflow(t *testing.T) {
+	vm := NewVM()
+	vm.sp = uint64(1)
+
+	err := vm.checkStackUnderflow(2)
+
+	if err != ErrStackUnderflow {
+		t.Errorf("Expected error %v, got %v", ErrStackUnderflow, err)
+	}
+}
