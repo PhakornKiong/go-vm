@@ -30,6 +30,11 @@ func (c *Compiler) Compile(input string) error {
 			continue
 		}
 
+		if strings.HasPrefix(parts[0], "//") {
+			// This line is a comment, skip processing
+			continue
+		}
+
 		// Assume that first word is always the opcode
 		op, err := opcode.FromString(parts[0])
 		if err != nil {

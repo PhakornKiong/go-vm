@@ -1,0 +1,23 @@
+// This example demonstrates a simple addition operation where multiple values are pushed onto the stack,
+// added together sequentially, and the final result is stored and then returned from memory.
+// Initially, 5 and 2 are pushed onto the stack and added to get 7.
+// Then, 10 is pushed onto the stack and added to the previous result (7) to get 17.
+// This final result (17) is then stored in memory and returned.
+
+// Push the decimal value 5 onto the stack
+PUSH1 0x05  
+// Push the decimal value 2 onto the stack
+PUSH1 0x02  
+// Add the top two values on the stack
+ADD         
+// Push the decimal value 10 onto the stack
+PUSH1 0x0A  
+// Add the result of previous addition with 10
+ADD         
+// Store 8 byte result into memory at offset position 0
+PUSH1 0x00
+STORE8
+// Return the 8 byte value from memory
+PUSH1 0x08
+PUSH1 0x00
+RETURN      

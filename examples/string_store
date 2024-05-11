@@ -1,0 +1,19 @@
+// The following sequence of opcodes will store the string "Hello World!" into memory and return it.
+
+// "Hello World!" in ASCII is 48 65 6C 6C 6F 20 57 6F 72 6C 64 21
+// We will push these values onto the stack in reverse order due to stack's LIFO nature.
+
+// Store the first 8 bytes consisting of "Hello Wo" at offset 0
+PUSH8 0x48656C6C6F20576F
+PUSH1 0x00
+STORE8
+// Store the next 8 bytes consisting of "rld!" at offset 8
+PUSH8 0x726C642100000000
+PUSH1 0x08
+STORE8
+
+// Return 12 bytes from memory
+PUSH1 0x0C
+PUSH1 0x00
+RETURN      
+
