@@ -17,8 +17,8 @@ type vm struct {
 	stack     []uint64 // stack
 	pc        uint64   // program counter
 	sp        uint64   // stack pointer
-	bytecode  []byte
-	memory    []byte // memory
+	bytecode  []byte   // compiled bytecode
+	memory    []byte   // memory
 	jumpTable JumpTable
 }
 

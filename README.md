@@ -65,6 +65,20 @@ The sequence of these opcodes in bytecode and their execution by the VM results 
 
 To use the VM, compile bytecode using the provided compiler which translates a set of instructions into bytecode that the VM can execute. The VM then executes the bytecode and manipulates its internal state according to the instructions encoded in the bytecode.
 
-## Example
+To run the virtual machine (VM) and execute bytecode, you can use the `main.go` file with specific command-line flags. Here's how you can use it:
 
-TODO
+1. **Input File**: Use the `-i` or `--input` flag to specify the input file containing the opcode instructions. This file should be a plain text file with the opcodes that you want the VM to execute.
+
+   Example:
+
+   ```
+   go run main.go --input examples/addition
+   ```
+
+2. **Return Type**: Use the `-t` or `--type` flag to specify the type of the return value. The supported types are `int64`, `uint64`, and `string`. If no type is specified, the result will be output as a byte array.
+
+   Example:
+
+   ```
+   go run main.go --input examples/subtraction --type int64
+   ```
