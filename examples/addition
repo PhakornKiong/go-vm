@@ -4,6 +4,9 @@
 // Then, 10 is pushed onto the stack and added to the previous result (7) to get 17.
 // This final result (17) is then stored in memory and returned.
 
+// To run this code, use the following command:
+// go run main.go -i examples/addition -t uint64
+
 // Push the decimal value 5 onto the stack
 PUSH1 0x05  
 // Push the decimal value 2 onto the stack

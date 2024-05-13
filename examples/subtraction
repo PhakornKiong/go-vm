@@ -6,6 +6,9 @@
 // 3. Add 1 to the least significant bit (LSB) to get 10010111, which is the 2's complement representation of -105.
 // This result will be stored and returned from memory as demonstrated below.
 
+// To run this code, use the following command:
+// go run main.go -i examples/addition -t int64
+
 // Push the decimal value 200 onto the stack
 PUSH1 0xC8  
 // Push the decimal value 95 onto the stack

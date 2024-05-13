@@ -3,6 +3,9 @@
 // "Hello World!" in ASCII is 48 65 6C 6C 6F 20 57 6F 72 6C 64 21
 // We will push these values onto the stack in reverse order due to stack's LIFO nature.
 
+// To run this code, use the following command:
+// go run main.go -i examples/string_store -t string
+
 // Store the first 8 bytes consisting of "Hello Wo" at offset 0
 PUSH8 0x48656C6C6F20576F
 PUSH1 0x00
